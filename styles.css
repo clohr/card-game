@@ -1,0 +1,27 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.card {
+  border: solid 1px #aeaeae;
+  border-radius: 4px;
+  height: 150px;
+  line-height: 150px;
+  margin: 20px;
+  width: 150px;
+  text-align: center;
+  text-transform: uppercase;
+}
