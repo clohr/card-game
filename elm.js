@@ -8557,71 +8557,165 @@ var _elm_lang$html$Html_Attributes$classList = function (list) {
 };
 var _elm_lang$html$Html_Attributes$style = _elm_lang$virtual_dom$VirtualDom$style;
 
+var _elm_lang$html$Html_Events$keyCode = A2(_elm_lang$core$Json_Decode$field, 'keyCode', _elm_lang$core$Json_Decode$int);
+var _elm_lang$html$Html_Events$targetChecked = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'target',
+		_1: {
+			ctor: '::',
+			_0: 'checked',
+			_1: {ctor: '[]'}
+		}
+	},
+	_elm_lang$core$Json_Decode$bool);
+var _elm_lang$html$Html_Events$targetValue = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'target',
+		_1: {
+			ctor: '::',
+			_0: 'value',
+			_1: {ctor: '[]'}
+		}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _elm_lang$html$Html_Events$defaultOptions = _elm_lang$virtual_dom$VirtualDom$defaultOptions;
+var _elm_lang$html$Html_Events$onWithOptions = _elm_lang$virtual_dom$VirtualDom$onWithOptions;
+var _elm_lang$html$Html_Events$on = _elm_lang$virtual_dom$VirtualDom$on;
+var _elm_lang$html$Html_Events$onFocus = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'focus',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onBlur = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'blur',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onSubmitOptions = _elm_lang$core$Native_Utils.update(
+	_elm_lang$html$Html_Events$defaultOptions,
+	{preventDefault: true});
+var _elm_lang$html$Html_Events$onSubmit = function (msg) {
+	return A3(
+		_elm_lang$html$Html_Events$onWithOptions,
+		'submit',
+		_elm_lang$html$Html_Events$onSubmitOptions,
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onCheck = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'change',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetChecked));
+};
+var _elm_lang$html$Html_Events$onInput = function (tagger) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'input',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _elm_lang$html$Html_Events$targetValue));
+};
+var _elm_lang$html$Html_Events$onMouseOut = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseout',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseOver = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseover',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseLeave = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseleave',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseEnter = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseenter',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseUp = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mouseup',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onMouseDown = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'mousedown',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onDoubleClick = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'dblclick',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$onClick = function (msg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'click',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _elm_lang$html$Html_Events$Options = F2(
+	function (a, b) {
+		return {stopPropagation: a, preventDefault: b};
+	});
+
 var _user$project$CardGame$update = F2(
 	function (msg, model) {
 		var _p0 = msg;
-		switch (_p0.ctor) {
-			case 'Tick':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
+		if (_p0.ctor === 'Tick') {
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						time: _elm_lang$core$Maybe$Just(_p0._0)
+					}),
+				_1: _elm_lang$core$Platform_Cmd$none
+			};
+		} else {
+			var _p1 = _p0._0;
+			var updatedCards = A2(
+				_elm_lang$core$List$map,
+				function (card) {
+					return _elm_lang$core$Native_Utils.update(
+						card,
 						{
-							time: _elm_lang$core$Maybe$Just(_p0._0)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			case 'FlipCard':
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{
-							selectedCard: _elm_lang$core$Maybe$Just(_p0._0)
-						}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
-			default:
-				return {
-					ctor: '_Tuple2',
-					_0: _elm_lang$core$Native_Utils.update(
-						model,
-						{allMatched: true}),
-					_1: _elm_lang$core$Platform_Cmd$none
-				};
+							flipped: _elm_lang$core$Native_Utils.eq(_p1.id, card.id)
+						});
+				},
+				model.cards);
+			return {
+				ctor: '_Tuple2',
+				_0: _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						selectedCard: _elm_lang$core$Maybe$Just(_p1),
+						cards: updatedCards
+					}),
+				_1: _elm_lang$core$Platform_Cmd$none
+			};
 		}
 	});
-var _user$project$CardGame$displayCard = function (card) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('card'),
-			_1: {ctor: '[]'}
-		},
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html$text(card.id),
-			_1: {ctor: '[]'}
-		});
-};
-var _user$project$CardGame$view = function (model) {
-	return A2(
-		_elm_lang$html$Html$div,
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$class('app'),
-			_1: {ctor: '[]'}
-		},
-		A2(_elm_lang$core$List$map, _user$project$CardGame$displayCard, model.cards));
-};
-var _user$project$CardGame$Model = F5(
-	function (a, b, c, d, e) {
-		return {cards: a, time: b, selectedCard: c, allMatched: d, startTimer: e};
+var _user$project$CardGame$Model = F6(
+	function (a, b, c, d, e, f) {
+		return {ids: a, cards: b, time: c, selectedCard: d, totalMatches: e, startTimer: f};
 	});
-var _user$project$CardGame$Card = F3(
-	function (a, b, c) {
-		return {id: a, flipped: b, matched: c};
+var _user$project$CardGame$Card = F4(
+	function (a, b, c, d) {
+		return {id: a, value: b, flipped: c, matched: d};
 	});
 var _user$project$CardGame$init = function () {
 	var ids = {
@@ -8649,19 +8743,94 @@ var _user$project$CardGame$init = function () {
 			}
 		}
 	};
-	var cards = A2(
-		_elm_lang$core$List$map,
-		function (i) {
-			return A3(_user$project$CardGame$Card, i, false, false);
-		},
-		ids);
-	var playingCards = A2(_elm_lang$core$List$append, cards, cards);
-	var initialModel = A5(_user$project$CardGame$Model, playingCards, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Maybe$Nothing, false, false);
+	var cards = A2(_elm_lang$core$List$append, ids, ids);
+	var playingCards = A2(
+		_elm_lang$core$List$indexedMap,
+		F2(
+			function (k, v) {
+				return A4(_user$project$CardGame$Card, k, v, false, false);
+			}),
+		cards);
+	var initialModel = A6(_user$project$CardGame$Model, ids, playingCards, _elm_lang$core$Maybe$Nothing, _elm_lang$core$Maybe$Nothing, 0, false);
 	return {ctor: '_Tuple2', _0: initialModel, _1: _elm_lang$core$Platform_Cmd$none};
 }();
-var _user$project$CardGame$EndGame = {ctor: 'EndGame'};
 var _user$project$CardGame$FlipCard = function (a) {
 	return {ctor: 'FlipCard', _0: a};
+};
+var _user$project$CardGame$displayCard = function (card) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$classList(
+				{
+					ctor: '::',
+					_0: {ctor: '_Tuple2', _0: 'card', _1: true},
+					_1: {
+						ctor: '::',
+						_0: {ctor: '_Tuple2', _0: 'hover', _1: card.flipped},
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {
+				ctor: '::',
+				_0: _elm_lang$html$Html_Events$onClick(
+					_user$project$CardGame$FlipCard(card)),
+				_1: {ctor: '[]'}
+			}
+		},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$div,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$class('flipper'),
+					_1: {ctor: '[]'}
+				},
+				{
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('front'),
+							_1: {ctor: '[]'}
+						},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text('?'),
+							_1: {ctor: '[]'}
+						}),
+					_1: {
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('back'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text(card.value),
+								_1: {ctor: '[]'}
+							}),
+						_1: {ctor: '[]'}
+					}
+				}),
+			_1: {ctor: '[]'}
+		});
+};
+var _user$project$CardGame$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$class('app'),
+			_1: {ctor: '[]'}
+		},
+		A2(_elm_lang$core$List$map, _user$project$CardGame$displayCard, model.cards));
 };
 var _user$project$CardGame$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};

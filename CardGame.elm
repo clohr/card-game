@@ -1,7 +1,8 @@
 module CardGame exposing (..)
 
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, classList)
+import Html.Events exposing (onClick)
 import Time exposing (Time, second)
 import List
 
@@ -21,16 +22,18 @@ main =
 
 
 type alias Model =
-    { cards : List Card
+    { ids : List String
+    , cards : List Card
     , time : Maybe Time
     , selectedCard : Maybe Card
-    , allMatched : Bool
+    , totalMatches : Int
     , startTimer : Bool
     }
 
 
 type alias Card =
-    { id : String
+    { id : Int
+    , value : String
     , flipped : Bool
     , matched : Bool
     }
@@ -43,14 +46,14 @@ init =
             [ "a", "b", "c", "d", "e", "f" ]
 
         cards =
-            List.map (\i -> Card i False False) ids
+            List.append ids ids
 
         playingCards =
-            List.append cards cards
+            List.indexedMap (\k v -> Card k v False False) cards
 
         -- TODO: shuffle cards
         initialModel =
-            Model playingCards Nothing Nothing False False
+            Model ids playingCards Nothing Nothing 0 False
     in
         ( initialModel, Cmd.none )
 
@@ -61,7 +64,18 @@ init =
 
 displayCard : Card -> Html Msg
 displayCard card =
-    div [ class "card" ] [ text card.id ]
+    div
+        [ classList
+            [ ( "card", True )
+            , ( "hover", card.flipped )
+            ]
+        , onClick <| FlipCard card
+        ]
+        [ div [ class "flipper" ]
+            [ div [ class "front" ] [ text "?" ]
+            , div [ class "back" ] [ text card.value ]
+            ]
+        ]
 
 
 view : Model -> Html Msg
@@ -76,7 +90,6 @@ view model =
 type Msg
     = Tick Time
     | FlipCard Card
-    | EndGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -86,10 +99,11 @@ update msg model =
             ( { model | time = Just newTime }, Cmd.none )
 
         FlipCard currentCard ->
-            ( { model | selectedCard = Just currentCard }, Cmd.none )
-
-        EndGame ->
-            ( { model | allMatched = True }, Cmd.none )
+            let
+                updatedCards =
+                    List.map (\card -> { card | flipped = currentCard.id == card.id }) model.cards
+            in
+                ( { model | selectedCard = Just currentCard, cards = updatedCards }, Cmd.none )
 
 
 

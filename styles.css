@@ -16,12 +16,52 @@ body {
 }
 
 .card {
-  border: solid 1px #aeaeae;
-  border-radius: 4px;
   height: 150px;
   line-height: 150px;
-  margin: 20px;
   width: 150px;
+  margin: 20px;
+  perspective: 1000px;
   text-align: center;
   text-transform: uppercase;
+}
+
+/*.card:hover .flipper, .card.hover .flipper {
+  transform: rotateY(180deg);
+}*/
+
+.card.hover .flipper {
+  transform: rotateY(180deg);
+}
+
+.front, .back {
+  border: solid 1px #aeaeae;
+  border-radius: 4px;
+  backface-visibility: hidden;
+  font-size: 24px;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.front {
+  background: #666;
+  color: #eee;
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+
+.back {
+  background: #fff;
+  color: #666;
+  transform: rotateY(180deg);
+}
+
+.flipper {
+  height: 100%;
+  position: relative;
+  transition: 0.6s;
+  transform-style: preserve-3d;
+  width: 100%;
 }
