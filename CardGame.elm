@@ -25,17 +25,28 @@ type alias Model =
     { ids : List String
     , cards : List Card
     , time : Maybe Time
-    , selectedCard : Maybe Card
+    , selectedCards : List Card
     , totalMatches : Int
-    , startTimer : Bool
+    , gameStatus : GameStatus
     }
+
+
+type GameStatus
+    = Paused
+    | Playing
+    | Over
+
+
+type CardStatus
+    = Hidden
+    | Flipped
+    | Matched
 
 
 type alias Card =
     { id : Int
     , value : String
-    , flipped : Bool
-    , matched : Bool
+    , status : CardStatus
     }
 
 
@@ -49,11 +60,11 @@ init =
             List.append ids ids
 
         playingCards =
-            List.indexedMap (\k v -> Card k v False False) cards
+            List.indexedMap (\k v -> Card k v Hidden) cards
 
         -- TODO: shuffle cards
         initialModel =
-            Model ids playingCards Nothing Nothing 0 False
+            Model ids playingCards Nothing [] 0 Paused
     in
         ( initialModel, Cmd.none )
 
@@ -67,7 +78,7 @@ displayCard card =
     div
         [ classList
             [ ( "card", True )
-            , ( "hover", card.flipped )
+            , ( "hover", card.status /= Hidden )
             ]
         , onClick <| FlipCard card
         ]
@@ -100,10 +111,40 @@ update msg model =
 
         FlipCard currentCard ->
             let
+                checkIfSelected : Card -> Model -> CardStatus
+                checkIfSelected card model =
+                    if List.member card model.selectedCards then
+                        Flipped
+                    else
+                        Hidden
+
+                setCardStatus : Card -> Model -> CardStatus
+                setCardStatus card model =
+                    if currentCard.id == card.id then
+                        Flipped
+                    else
+                        checkIfSelected card model
+
+                setSelected : Card -> Model -> List Card
+                setSelected card model =
+                    -- only want to compare two cards at a time
+                    if List.length model.selectedCards < 2 then
+                        { card | status = Flipped } :: model.selectedCards
+                    else
+                        model.selectedCards
+
                 updatedCards =
-                    List.map (\card -> { card | flipped = currentCard.id == card.id }) model.cards
+                    if List.length model.selectedCards < 2 then
+                        List.map (\card -> { card | status = setCardStatus card model }) model.cards
+                    else
+                        model.cards
             in
-                ( { model | selectedCard = Just currentCard, cards = updatedCards }, Cmd.none )
+                ( { model
+                    | selectedCards = setSelected currentCard model
+                    , cards = updatedCards
+                  }
+                , Cmd.none
+                )
 
 
 
@@ -112,7 +153,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.startTimer then
+    if model.gameStatus == Playing then
         Time.every second Tick
     else
         Sub.none
