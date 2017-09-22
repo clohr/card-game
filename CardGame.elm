@@ -1,7 +1,7 @@
 module CardGame exposing (..)
 
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (class, classList)
+import Html exposing (Html, div, text, node)
+import Html.Attributes exposing (class, classList, rel, href)
 import Html.Events exposing (onClick)
 import Time exposing (Time, second)
 import List
@@ -25,9 +25,14 @@ type alias Model =
     { ids : List String
     , cards : List Card
     , time : Maybe Time
-    , selectedCards : List Card
-    , totalMatches : Int
     , gameStatus : GameStatus
+    }
+
+
+type alias Card =
+    { id : Int
+    , value : String
+    , status : CardStatus
     }
 
 
@@ -43,34 +48,33 @@ type CardStatus
     | Matched
 
 
-type alias Card =
-    { id : Int
-    , value : String
-    , status : CardStatus
-    }
-
-
 init : ( Model, Cmd Msg )
 init =
     let
         ids =
             [ "a", "b", "c", "d", "e", "f" ]
 
-        cards =
-            List.append ids ids
-
         playingCards =
-            List.indexedMap (\k v -> Card k v Hidden) cards
+            List.append ids ids
+                |> List.indexedMap (\k v -> Card k v Hidden)
 
         -- TODO: shuffle cards
+        shuffledCards =
+            playingCards
+
         initialModel =
-            Model ids playingCards Nothing [] 0 Paused
+            Model ids shuffledCards Nothing Paused
     in
         ( initialModel, Cmd.none )
 
 
 
 -- VIEW
+
+
+css : String -> Html Msg
+css path =
+    node "link" [ rel "stylesheet", href path ] []
 
 
 displayCard : Card -> Html Msg
@@ -91,7 +95,10 @@ displayCard card =
 
 view : Model -> Html Msg
 view model =
-    div [ class "app" ] (List.map displayCard model.cards)
+    div []
+        [ css "styles.css"
+        , div [ class "app" ] (List.map displayCard model.cards)
+        ]
 
 
 
@@ -111,40 +118,17 @@ update msg model =
 
         FlipCard currentCard ->
             let
-                checkIfSelected : Card -> Model -> CardStatus
-                checkIfSelected card model =
-                    if List.member card model.selectedCards then
-                        Flipped
-                    else
-                        Hidden
-
                 setCardStatus : Card -> Model -> CardStatus
                 setCardStatus card model =
                     if currentCard.id == card.id then
                         Flipped
                     else
-                        checkIfSelected card model
-
-                setSelected : Card -> Model -> List Card
-                setSelected card model =
-                    -- only want to compare two cards at a time
-                    if List.length model.selectedCards < 2 then
-                        { card | status = Flipped } :: model.selectedCards
-                    else
-                        model.selectedCards
+                        card.status
 
                 updatedCards =
-                    if List.length model.selectedCards < 2 then
-                        List.map (\card -> { card | status = setCardStatus card model }) model.cards
-                    else
-                        model.cards
+                    List.map (\card -> { card | status = setCardStatus card model }) model.cards
             in
-                ( { model
-                    | selectedCards = setSelected currentCard model
-                    , cards = updatedCards
-                  }
-                , Cmd.none
-                )
+                ( { model | cards = updatedCards }, Cmd.none )
 
 
 
