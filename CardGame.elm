@@ -4,6 +4,7 @@ import Html exposing (Html, div, text, node)
 import Html.Attributes exposing (class, classList, rel, href)
 import Html.Events exposing (onClick)
 import Time exposing (Time, second)
+import Debug exposing (log)
 import List
 
 
@@ -110,6 +111,52 @@ type Msg
     | FlipCard Card
 
 
+getCardsByStatus : CardStatus -> List Card -> List Card
+getCardsByStatus cardStatus cards =
+    List.filter (\card -> card.status == cardStatus) cards
+
+
+doCardsMatch : List Card -> Bool
+doCardsMatch cards =
+    let
+        firstCard =
+            List.head cards
+                |> Maybe.andThen (\c -> (Just c.value))
+                |> Maybe.withDefault "aa"
+
+        secondCard =
+            List.drop 1 cards
+                |> List.head
+                |> Maybe.andThen (\c -> (Just c.value))
+                |> Maybe.withDefault "zz"
+    in
+        firstCard == secondCard
+
+
+updateCardStatus : Card -> Card -> CardStatus
+updateCardStatus currentCard card =
+    if currentCard.id == card.id then
+        Flipped
+    else
+        card.status
+
+
+matchCard : Card -> Card
+matchCard card =
+    if card.status == Flipped then
+        { card | status = Matched }
+    else
+        card
+
+
+hideCard : Card -> Card
+hideCard card =
+    if card.status == Flipped then
+        { card | status = Hidden }
+    else
+        card
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -118,17 +165,21 @@ update msg model =
 
         FlipCard currentCard ->
             let
-                setCardStatus : Card -> Model -> CardStatus
-                setCardStatus card model =
-                    if currentCard.id == card.id then
-                        Flipped
-                    else
-                        card.status
-
                 updatedCards =
-                    List.map (\card -> { card | status = setCardStatus card model }) model.cards
+                    List.map (\card -> { card | status = updateCardStatus currentCard card }) model.cards
+
+                flippedCards =
+                    getCardsByStatus Flipped updatedCards
+
+                updatedMatches =
+                    if doCardsMatch flippedCards then
+                        List.map matchCard updatedCards
+                    else if List.length flippedCards > 2 then
+                        List.map hideCard updatedCards
+                    else
+                        updatedCards
             in
-                ( { model | cards = updatedCards }, Cmd.none )
+                ( { model | cards = updatedMatches }, Cmd.none )
 
 
 
