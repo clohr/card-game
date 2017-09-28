@@ -9502,11 +9502,16 @@ var _user$project$CardGame$update = F2(
 		var _p0 = msg;
 		switch (_p0.ctor) {
 			case 'Tick':
+				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, model.cards);
+				var updatedCards = _user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, model.cards) : (_elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$List$length(flippedCards),
+					2) ? A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards) : model.cards);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
+							cards: updatedCards,
 							time: _elm_lang$core$Maybe$Just(_p0._0)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
@@ -9530,15 +9535,11 @@ var _user$project$CardGame$update = F2(
 							});
 					},
 					model.cards);
-				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, updatedCards);
-				var updatedMatches = _user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, updatedCards) : ((_elm_lang$core$Native_Utils.cmp(
-					_elm_lang$core$List$length(flippedCards),
-					2) > 0) ? A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, updatedCards) : updatedCards);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: updatedMatches}),
+						{cards: updatedCards, gameStatus: _user$project$CardGame$Playing}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}

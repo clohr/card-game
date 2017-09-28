@@ -160,7 +160,28 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
-            ( { model | time = Just newTime }, Cmd.none )
+            let
+                flippedCards =
+                    getCardsByStatus Flipped model.cards
+
+                updatedCards =
+                    if doCardsMatch flippedCards then
+                        List.map matchCard model.cards
+                    else if List.length flippedCards == 2 then
+                        List.map hideCard model.cards
+                    else
+                        model.cards
+
+                matchedCards =
+                    getCardsByStatus Matched model.cards
+
+                gameStatus =
+                    if List.length matchedCards == List.length model.ids then
+                        Over
+                    else
+                        Playing
+            in
+                ( { model | cards = updatedCards, time = Just newTime, gameStatus = gameStatus }, Cmd.none )
 
         ShuffleList shuffledList ->
             ( { model | cards = shuffledList }, Cmd.none )
@@ -169,19 +190,8 @@ update msg model =
             let
                 updatedCards =
                     List.map (\card -> { card | status = updateCardStatus currentCard card }) model.cards
-
-                flippedCards =
-                    getCardsByStatus Flipped updatedCards
-
-                updatedMatches =
-                    if doCardsMatch flippedCards then
-                        List.map matchCard updatedCards
-                    else if List.length flippedCards > 2 then
-                        List.map hideCard updatedCards
-                    else
-                        updatedCards
             in
-                ( { model | cards = updatedMatches }, Cmd.none )
+                ( { model | cards = updatedCards, gameStatus = Playing }, Cmd.none )
 
 
 
