@@ -3,6 +3,8 @@ module CardGame exposing (..)
 import Html exposing (Html, div, text, node)
 import Html.Attributes exposing (class, classList, rel, href)
 import Html.Events exposing (onClick)
+import Random exposing (generate)
+import Random.List exposing (shuffle)
 import Time exposing (Time, second)
 import Debug exposing (log)
 import List
@@ -59,14 +61,10 @@ init =
             List.append ids ids
                 |> List.indexedMap (\k v -> Card k v Hidden)
 
-        -- TODO: shuffle cards
-        shuffledCards =
-            playingCards
-
         initialModel =
-            Model ids shuffledCards Nothing Paused
+            Model ids playingCards Nothing Paused
     in
-        ( initialModel, Cmd.none )
+        ( initialModel, generate ShuffleList (shuffle initialModel.cards) )
 
 
 
@@ -104,11 +102,6 @@ view model =
 
 
 -- UPDATE
-
-
-type Msg
-    = Tick Time
-    | FlipCard Card
 
 
 getCardsByStatus : CardStatus -> List Card -> List Card
@@ -157,11 +150,20 @@ hideCard card =
         card
 
 
+type Msg
+    = Tick Time
+    | FlipCard Card
+    | ShuffleList (List Card)
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
             ( { model | time = Just newTime }, Cmd.none )
+
+        ShuffleList shuffledList ->
+            ( { model | cards = shuffledList }, Cmd.none )
 
         FlipCard currentCard ->
             let
