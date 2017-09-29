@@ -9427,9 +9427,6 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
-var _user$project$CardGame$subscriptions = function (model) {
-	return _elm_lang$core$Platform_Sub$none;
-};
 var _user$project$CardGame$doCardsMatch = function (cards) {
 	var secondCard = A2(
 		_elm_lang$core$Maybe$withDefault,
@@ -9476,6 +9473,31 @@ var _user$project$CardGame$css = function (path) {
 		},
 		{ctor: '[]'});
 };
+var _user$project$CardGame$ids = {
+	ctor: '::',
+	_0: 'a',
+	_1: {
+		ctor: '::',
+		_0: 'b',
+		_1: {
+			ctor: '::',
+			_0: 'c',
+			_1: {
+				ctor: '::',
+				_0: 'd',
+				_1: {
+					ctor: '::',
+					_0: 'e',
+					_1: {
+						ctor: '::',
+						_0: 'f',
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		}
+	}
+};
 var _user$project$CardGame$Model = F4(
 	function (a, b, c, d) {
 		return {ids: a, cards: b, time: c, gameStatus: d};
@@ -9499,6 +9521,14 @@ var _user$project$CardGame$matchCard = function (card) {
 		{status: _user$project$CardGame$Matched}) : card;
 };
 var _user$project$CardGame$Hidden = {ctor: 'Hidden'};
+var _user$project$CardGame$playingCards = A2(
+	_elm_lang$core$List$indexedMap,
+	F2(
+		function (k, v) {
+			return A3(_user$project$CardGame$Card, k, v, _user$project$CardGame$Hidden);
+		}),
+	A2(_elm_lang$core$List$append, _user$project$CardGame$ids, _user$project$CardGame$ids));
+var _user$project$CardGame$initialModel = A4(_user$project$CardGame$Model, _user$project$CardGame$ids, _user$project$CardGame$playingCards, _elm_lang$core$Maybe$Nothing, _user$project$CardGame$Paused);
 var _user$project$CardGame$hideCard = function (card) {
 	return _elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Flipped) ? _elm_lang$core$Native_Utils.update(
 		card,
@@ -9510,18 +9540,23 @@ var _user$project$CardGame$matchesCmd = A2(
 	function (_p0) {
 		return _user$project$CardGame$CheckForMatches;
 	},
-	_elm_lang$core$Process$sleep(2 * _elm_lang$core$Time$second));
+	_elm_lang$core$Process$sleep(1500 * _elm_lang$core$Time$millisecond));
 var _user$project$CardGame$update = F2(
 	function (msg, model) {
 		var _p1 = msg;
 		switch (_p1.ctor) {
 			case 'Tick':
+				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, model.cards);
+				var gameStatus = _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$List$length(matchedCards),
+					_elm_lang$core$List$length(model.cards)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							time: _elm_lang$core$Maybe$Just(_p1._0)
+							time: _elm_lang$core$Maybe$Just(_p1._0),
+							gameStatus: gameStatus
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -9551,66 +9586,32 @@ var _user$project$CardGame$update = F2(
 						{cards: updatedCards, gameStatus: _user$project$CardGame$Playing}),
 					_1: _user$project$CardGame$matchesCmd
 				};
+			case 'ResetGame':
+				return {ctor: '_Tuple2', _0: _user$project$CardGame$initialModel, _1: _elm_lang$core$Platform_Cmd$none};
 			default:
-				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, model.cards);
-				var gameStatus = _elm_lang$core$Native_Utils.eq(
-					_elm_lang$core$List$length(matchedCards),
-					_elm_lang$core$List$length(model.ids)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
 				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, model.cards);
-				var cardsMatch = _user$project$CardGame$doCardsMatch(flippedCards);
-				var numFlippedCards = _elm_lang$core$List$length(flippedCards);
-				var updatedCards = _elm_lang$core$Native_Utils.eq(numFlippedCards, 1) ? model.cards : ((_elm_lang$core$Native_Utils.eq(numFlippedCards, 2) && cardsMatch) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, model.cards) : A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards));
+				var updatedCards = _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$List$length(flippedCards),
+					1) ? model.cards : (_user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, model.cards) : A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards));
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: updatedCards, gameStatus: gameStatus}),
+						{cards: updatedCards}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
 	});
+var _user$project$CardGame$ResetGame = {ctor: 'ResetGame'};
 var _user$project$CardGame$ShuffleList = function (a) {
 	return {ctor: 'ShuffleList', _0: a};
 };
 var _user$project$CardGame$init = function () {
-	var ids = {
-		ctor: '::',
-		_0: 'a',
-		_1: {
-			ctor: '::',
-			_0: 'b',
-			_1: {
-				ctor: '::',
-				_0: 'c',
-				_1: {
-					ctor: '::',
-					_0: 'd',
-					_1: {
-						ctor: '::',
-						_0: 'e',
-						_1: {
-							ctor: '::',
-							_0: 'f',
-							_1: {ctor: '[]'}
-						}
-					}
-				}
-			}
-		}
-	};
-	var playingCards = A2(
-		_elm_lang$core$List$indexedMap,
-		F2(
-			function (k, v) {
-				return A3(_user$project$CardGame$Card, k, v, _user$project$CardGame$Hidden);
-			}),
-		A2(_elm_lang$core$List$append, ids, ids));
-	var initialModel = A4(_user$project$CardGame$Model, ids, playingCards, _elm_lang$core$Maybe$Nothing, _user$project$CardGame$Paused);
 	var shuffleCmd = A2(
 		_elm_lang$core$Random$generate,
 		_user$project$CardGame$ShuffleList,
-		_elm_community$random_extra$Random_List$shuffle(initialModel.cards));
-	return {ctor: '_Tuple2', _0: initialModel, _1: shuffleCmd};
+		_elm_community$random_extra$Random_List$shuffle(_user$project$CardGame$initialModel.cards));
+	return {ctor: '_Tuple2', _0: _user$project$CardGame$initialModel, _1: shuffleCmd};
 }();
 var _user$project$CardGame$FlipCard = function (a) {
 	return {ctor: 'FlipCard', _0: a};
@@ -9697,19 +9698,84 @@ var _user$project$CardGame$view = function (model) {
 					_elm_lang$html$Html$div,
 					{
 						ctor: '::',
-						_0: _elm_lang$html$Html_Attributes$class('app'),
+						_0: _elm_lang$html$Html_Attributes$classList(
+							{
+								ctor: '::',
+								_0: {ctor: '_Tuple2', _0: 'game-over', _1: true},
+								_1: {
+									ctor: '::',
+									_0: {
+										ctor: '_Tuple2',
+										_0: 'hidden',
+										_1: !_elm_lang$core$Native_Utils.eq(model.gameStatus, _user$project$CardGame$Over)
+									},
+									_1: {ctor: '[]'}
+								}
+							}),
 						_1: {ctor: '[]'}
 					},
-					A2(_elm_lang$core$List$map, _user$project$CardGame$displayCard, model.cards)),
-				_1: {ctor: '[]'}
+					{
+						ctor: '::',
+						_0: A2(
+							_elm_lang$html$Html$div,
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$class('message'),
+								_1: {ctor: '[]'}
+							},
+							{
+								ctor: '::',
+								_0: _elm_lang$html$Html$text('GAME OVER'),
+								_1: {ctor: '[]'}
+							}),
+						_1: {
+							ctor: '::',
+							_0: A2(
+								_elm_lang$html$Html$a,
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$href('#reset'),
+									_1: {
+										ctor: '::',
+										_0: _elm_lang$html$Html_Attributes$class('reset-link'),
+										_1: {
+											ctor: '::',
+											_0: _elm_lang$html$Html_Events$onClick(_user$project$CardGame$ResetGame),
+											_1: {ctor: '[]'}
+										}
+									}
+								},
+								{
+									ctor: '::',
+									_0: _elm_lang$html$Html$text('Play Again'),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}
+					}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$class('app'),
+							_1: {ctor: '[]'}
+						},
+						A2(_elm_lang$core$List$map, _user$project$CardGame$displayCard, model.cards)),
+					_1: {ctor: '[]'}
+				}
 			}
 		});
 };
-var _user$project$CardGame$main = _elm_lang$html$Html$program(
-	{init: _user$project$CardGame$init, view: _user$project$CardGame$view, update: _user$project$CardGame$update, subscriptions: _user$project$CardGame$subscriptions})();
 var _user$project$CardGame$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
+var _user$project$CardGame$subscriptions = function (model) {
+	return _elm_lang$core$Native_Utils.eq(model.gameStatus, _user$project$CardGame$Playing) ? A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _user$project$CardGame$Tick) : _elm_lang$core$Platform_Sub$none;
+};
+var _user$project$CardGame$main = _elm_lang$html$Html$program(
+	{init: _user$project$CardGame$init, view: _user$project$CardGame$view, update: _user$project$CardGame$update, subscriptions: _user$project$CardGame$subscriptions})();
 
 var Elm = {};
 Elm['CardGame'] = Elm['CardGame'] || {};

@@ -1,6 +1,6 @@
 module CardGame exposing (..)
 
-import Html exposing (Html, div, text, node)
+import Html exposing (Html, div, text, node, a)
 import Html.Attributes exposing (class, classList, rel, href)
 import Html.Events exposing (onClick)
 import Random exposing (generate)
@@ -52,19 +52,22 @@ type CardStatus
     | Matched
 
 
+ids =
+    [ "a", "b", "c", "d", "e", "f" ]
+
+
+playingCards =
+    List.append ids ids
+        |> List.indexedMap (\k v -> Card k v Hidden)
+
+
+initialModel =
+    Model ids playingCards Nothing Paused
+
+
 init : ( Model, Cmd Msg )
 init =
     let
-        ids =
-            [ "a", "b", "c", "d", "e", "f" ]
-
-        playingCards =
-            List.append ids ids
-                |> List.indexedMap (\k v -> Card k v Hidden)
-
-        initialModel =
-            Model ids playingCards Nothing Paused
-
         shuffleCmd =
             generate ShuffleList (shuffle initialModel.cards)
     in
@@ -100,6 +103,15 @@ view : Model -> Html Msg
 view model =
     div []
         [ css "styles.css"
+        , div
+            [ classList
+                [ ( "game-over", True )
+                , ( "hidden", model.gameStatus /= Over )
+                ]
+            ]
+            [ div [ class "message" ] [ text "GAME OVER" ]
+            , a [ href "#reset", class "reset-link", onClick ResetGame ] [ text "Play Again" ]
+            ]
         , div [ class "app" ] (List.map displayCard model.cards)
         ]
 
@@ -158,6 +170,7 @@ type Msg
     = Tick Time
     | FlipCard Card
     | ShuffleList (List Card)
+    | ResetGame
     | CheckForMatches
 
 
@@ -171,7 +184,17 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
-            ( { model | time = Just newTime }, Cmd.none )
+            let
+                matchedCards =
+                    getCardsByStatus Matched model.cards
+
+                gameStatus =
+                    if List.length matchedCards == List.length model.cards then
+                        Over
+                    else
+                        Playing
+            in
+                ( { model | time = Just newTime, gameStatus = gameStatus }, Cmd.none )
 
         ShuffleList shuffledList ->
             ( { model | cards = shuffledList }, Cmd.none )
@@ -183,35 +206,23 @@ update msg model =
             in
                 ( { model | cards = updatedCards, gameStatus = Playing }, matchesCmd )
 
+        ResetGame ->
+            ( initialModel, Cmd.none )
+
         CheckForMatches ->
             let
                 flippedCards =
                     getCardsByStatus Flipped model.cards
 
-                cardsMatch =
-                    doCardsMatch flippedCards
-
-                numFlippedCards =
-                    List.length flippedCards
-
                 updatedCards =
-                    if numFlippedCards == 1 then
+                    if List.length flippedCards == 1 then
                         model.cards
-                    else if numFlippedCards == 2 && cardsMatch then
+                    else if doCardsMatch flippedCards then
                         List.map matchCard model.cards
                     else
                         List.map hideCard model.cards
-
-                matchedCards =
-                    getCardsByStatus Matched model.cards
-
-                gameStatus =
-                    if List.length matchedCards == List.length model.ids then
-                        Over
-                    else
-                        Playing
             in
-                ( { model | cards = updatedCards, gameStatus = gameStatus }, Cmd.none )
+                ( { model | cards = updatedCards }, Cmd.none )
 
 
 
@@ -220,7 +231,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    -- if model.gameStatus == Playing then
-    --     Time.every second Tick
-    -- else
-    Sub.none
+    if model.gameStatus == Playing then
+        Time.every second Tick
+    else
+        Sub.none

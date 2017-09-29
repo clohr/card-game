@@ -3,6 +3,7 @@
 }
 
 body {
+  font-family: serif;
   margin: 0;
   padding: 0;
 }
@@ -24,10 +25,6 @@ body {
   text-align: center;
   text-transform: uppercase;
 }
-
-/*.card:hover .flipper, .card.hover .flipper {
-  transform: rotateY(180deg);
-}*/
 
 .card.hover .flipper {
   transform: rotateY(180deg);
@@ -64,4 +61,37 @@ body {
   transition: 0.6s;
   transform-style: preserve-3d;
   width: 100%;
+}
+
+.game-over {
+  position: fixed;
+  background: rgba(100, 100, 255, .7);
+  font-size: 48px;
+  line-height: 60px;
+  padding: 45% 0;
+  text-align: center;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 2;
+}
+
+.message {
+  color: #fff;
+  text-shadow: #000 1px 1px 1px;
+}
+
+.hidden {
+  display: none;
+}
+
+.reset-link {
+  font-size: 16px;
+  color: blueviolet;
+  text-decoration: underline;
+}
+
+.reset-link:hover {
+  text-decoration: none;
 }
