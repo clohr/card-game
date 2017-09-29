@@ -52,17 +52,16 @@ type CardStatus
     | Matched
 
 
-ids =
-    [ "a", "b", "c", "d", "e", "f" ]
-
-
-playingCards =
-    List.append ids ids
-        |> List.indexedMap (\k v -> Card k v Hidden)
-
-
 initialModel =
-    Model ids playingCards Nothing Paused
+    let
+        ids =
+            [ "a", "b", "c", "d", "e", "f" ]
+
+        playingCards =
+            List.append ids ids
+                |> List.indexedMap (\k v -> Card k v Hidden)
+    in
+        Model ids playingCards Nothing Paused
 
 
 init : ( Model, Cmd Msg )

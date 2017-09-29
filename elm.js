@@ -9473,31 +9473,6 @@ var _user$project$CardGame$css = function (path) {
 		},
 		{ctor: '[]'});
 };
-var _user$project$CardGame$ids = {
-	ctor: '::',
-	_0: 'a',
-	_1: {
-		ctor: '::',
-		_0: 'b',
-		_1: {
-			ctor: '::',
-			_0: 'c',
-			_1: {
-				ctor: '::',
-				_0: 'd',
-				_1: {
-					ctor: '::',
-					_0: 'e',
-					_1: {
-						ctor: '::',
-						_0: 'f',
-						_1: {ctor: '[]'}
-					}
-				}
-			}
-		}
-	}
-};
 var _user$project$CardGame$Model = F4(
 	function (a, b, c, d) {
 		return {ids: a, cards: b, time: c, gameStatus: d};
@@ -9521,14 +9496,41 @@ var _user$project$CardGame$matchCard = function (card) {
 		{status: _user$project$CardGame$Matched}) : card;
 };
 var _user$project$CardGame$Hidden = {ctor: 'Hidden'};
-var _user$project$CardGame$playingCards = A2(
-	_elm_lang$core$List$indexedMap,
-	F2(
-		function (k, v) {
-			return A3(_user$project$CardGame$Card, k, v, _user$project$CardGame$Hidden);
-		}),
-	A2(_elm_lang$core$List$append, _user$project$CardGame$ids, _user$project$CardGame$ids));
-var _user$project$CardGame$initialModel = A4(_user$project$CardGame$Model, _user$project$CardGame$ids, _user$project$CardGame$playingCards, _elm_lang$core$Maybe$Nothing, _user$project$CardGame$Paused);
+var _user$project$CardGame$initialModel = function () {
+	var ids = {
+		ctor: '::',
+		_0: 'a',
+		_1: {
+			ctor: '::',
+			_0: 'b',
+			_1: {
+				ctor: '::',
+				_0: 'c',
+				_1: {
+					ctor: '::',
+					_0: 'd',
+					_1: {
+						ctor: '::',
+						_0: 'e',
+						_1: {
+							ctor: '::',
+							_0: 'f',
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		}
+	};
+	var playingCards = A2(
+		_elm_lang$core$List$indexedMap,
+		F2(
+			function (k, v) {
+				return A3(_user$project$CardGame$Card, k, v, _user$project$CardGame$Hidden);
+			}),
+		A2(_elm_lang$core$List$append, ids, ids));
+	return A4(_user$project$CardGame$Model, ids, playingCards, _elm_lang$core$Maybe$Nothing, _user$project$CardGame$Paused);
+}();
 var _user$project$CardGame$hideCard = function (card) {
 	return _elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Flipped) ? _elm_lang$core$Native_Utils.update(
 		card,
