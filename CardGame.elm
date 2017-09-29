@@ -5,8 +5,9 @@ import Html.Attributes exposing (class, classList, rel, href)
 import Html.Events exposing (onClick)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
-import Time exposing (Time, second)
-import Debug exposing (log)
+import Time exposing (Time, second, millisecond)
+import Process exposing (sleep)
+import Task exposing (perform)
 import List
 
 
@@ -63,8 +64,11 @@ init =
 
         initialModel =
             Model ids playingCards Nothing Paused
+
+        shuffleCmd =
+            generate ShuffleList (shuffle initialModel.cards)
     in
-        ( initialModel, generate ShuffleList (shuffle initialModel.cards) )
+        ( initialModel, shuffleCmd )
 
 
 
@@ -154,23 +158,49 @@ type Msg
     = Tick Time
     | FlipCard Card
     | ShuffleList (List Card)
+    | CheckForMatches
+
+
+matchesCmd : Cmd Msg
+matchesCmd =
+    sleep (1500 * millisecond)
+        |> perform (\_ -> CheckForMatches)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
+            ( { model | time = Just newTime }, Cmd.none )
+
+        ShuffleList shuffledList ->
+            ( { model | cards = shuffledList }, Cmd.none )
+
+        FlipCard currentCard ->
+            let
+                updatedCards =
+                    List.map (\card -> { card | status = updateCardStatus currentCard card }) model.cards
+            in
+                ( { model | cards = updatedCards, gameStatus = Playing }, matchesCmd )
+
+        CheckForMatches ->
             let
                 flippedCards =
                     getCardsByStatus Flipped model.cards
 
+                cardsMatch =
+                    doCardsMatch flippedCards
+
+                numFlippedCards =
+                    List.length flippedCards
+
                 updatedCards =
-                    if doCardsMatch flippedCards then
-                        List.map matchCard model.cards
-                    else if List.length flippedCards == 2 then
-                        List.map hideCard model.cards
-                    else
+                    if numFlippedCards == 1 then
                         model.cards
+                    else if numFlippedCards == 2 && cardsMatch then
+                        List.map matchCard model.cards
+                    else
+                        List.map hideCard model.cards
 
                 matchedCards =
                     getCardsByStatus Matched model.cards
@@ -181,17 +211,7 @@ update msg model =
                     else
                         Playing
             in
-                ( { model | cards = updatedCards, time = Just newTime, gameStatus = gameStatus }, Cmd.none )
-
-        ShuffleList shuffledList ->
-            ( { model | cards = shuffledList }, Cmd.none )
-
-        FlipCard currentCard ->
-            let
-                updatedCards =
-                    List.map (\card -> { card | status = updateCardStatus currentCard card }) model.cards
-            in
-                ( { model | cards = updatedCards, gameStatus = Playing }, Cmd.none )
+                ( { model | cards = updatedCards, gameStatus = gameStatus }, Cmd.none )
 
 
 
@@ -200,7 +220,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.gameStatus == Playing then
-        Time.every second Tick
-    else
-        Sub.none
+    -- if model.gameStatus == Playing then
+    --     Time.every second Tick
+    -- else
+    Sub.none

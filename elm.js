@@ -6920,6 +6920,10 @@ var _elm_lang$core$Json_Decode$bool = _elm_lang$core$Native_Json.decodePrimitive
 var _elm_lang$core$Json_Decode$string = _elm_lang$core$Native_Json.decodePrimitive('string');
 var _elm_lang$core$Json_Decode$Decoder = {ctor: 'Decoder'};
 
+var _elm_lang$core$Process$kill = _elm_lang$core$Native_Scheduler.kill;
+var _elm_lang$core$Process$sleep = _elm_lang$core$Native_Scheduler.sleep;
+var _elm_lang$core$Process$spawn = _elm_lang$core$Native_Scheduler.spawn;
+
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrap;
 var _elm_lang$virtual_dom$VirtualDom_Debug$wrapWithFlags;
 
@@ -9423,6 +9427,9 @@ var _elm_lang$html$Html_Events$Options = F2(
 		return {stopPropagation: a, preventDefault: b};
 	});
 
+var _user$project$CardGame$subscriptions = function (model) {
+	return _elm_lang$core$Platform_Sub$none;
+};
 var _user$project$CardGame$doCardsMatch = function (cards) {
 	var secondCard = A2(
 		_elm_lang$core$Maybe$withDefault,
@@ -9497,22 +9504,24 @@ var _user$project$CardGame$hideCard = function (card) {
 		card,
 		{status: _user$project$CardGame$Hidden}) : card;
 };
+var _user$project$CardGame$CheckForMatches = {ctor: 'CheckForMatches'};
+var _user$project$CardGame$matchesCmd = A2(
+	_elm_lang$core$Task$perform,
+	function (_p0) {
+		return _user$project$CardGame$CheckForMatches;
+	},
+	_elm_lang$core$Process$sleep(2 * _elm_lang$core$Time$second));
 var _user$project$CardGame$update = F2(
 	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
+		var _p1 = msg;
+		switch (_p1.ctor) {
 			case 'Tick':
-				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, model.cards);
-				var updatedCards = _user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, model.cards) : (_elm_lang$core$Native_Utils.eq(
-					_elm_lang$core$List$length(flippedCards),
-					2) ? A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards) : model.cards);
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							cards: updatedCards,
-							time: _elm_lang$core$Maybe$Just(_p0._0)
+							time: _elm_lang$core$Maybe$Just(_p1._0)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -9521,17 +9530,17 @@ var _user$project$CardGame$update = F2(
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: _p0._0}),
+						{cards: _p1._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
-			default:
+			case 'FlipCard':
 				var updatedCards = A2(
 					_elm_lang$core$List$map,
 					function (card) {
 						return _elm_lang$core$Native_Utils.update(
 							card,
 							{
-								status: A2(_user$project$CardGame$updateCardStatus, _p0._0, card)
+								status: A2(_user$project$CardGame$updateCardStatus, _p1._0, card)
 							});
 					},
 					model.cards);
@@ -9540,6 +9549,22 @@ var _user$project$CardGame$update = F2(
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{cards: updatedCards, gameStatus: _user$project$CardGame$Playing}),
+					_1: _user$project$CardGame$matchesCmd
+				};
+			default:
+				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, model.cards);
+				var gameStatus = _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$List$length(matchedCards),
+					_elm_lang$core$List$length(model.ids)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
+				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, model.cards);
+				var cardsMatch = _user$project$CardGame$doCardsMatch(flippedCards);
+				var numFlippedCards = _elm_lang$core$List$length(flippedCards);
+				var updatedCards = _elm_lang$core$Native_Utils.eq(numFlippedCards, 1) ? model.cards : ((_elm_lang$core$Native_Utils.eq(numFlippedCards, 2) && cardsMatch) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, model.cards) : A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards));
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{cards: updatedCards, gameStatus: gameStatus}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
@@ -9581,14 +9606,11 @@ var _user$project$CardGame$init = function () {
 			}),
 		A2(_elm_lang$core$List$append, ids, ids));
 	var initialModel = A4(_user$project$CardGame$Model, ids, playingCards, _elm_lang$core$Maybe$Nothing, _user$project$CardGame$Paused);
-	return {
-		ctor: '_Tuple2',
-		_0: initialModel,
-		_1: A2(
-			_elm_lang$core$Random$generate,
-			_user$project$CardGame$ShuffleList,
-			_elm_community$random_extra$Random_List$shuffle(initialModel.cards))
-	};
+	var shuffleCmd = A2(
+		_elm_lang$core$Random$generate,
+		_user$project$CardGame$ShuffleList,
+		_elm_community$random_extra$Random_List$shuffle(initialModel.cards));
+	return {ctor: '_Tuple2', _0: initialModel, _1: shuffleCmd};
 }();
 var _user$project$CardGame$FlipCard = function (a) {
 	return {ctor: 'FlipCard', _0: a};
@@ -9683,14 +9705,11 @@ var _user$project$CardGame$view = function (model) {
 			}
 		});
 };
+var _user$project$CardGame$main = _elm_lang$html$Html$program(
+	{init: _user$project$CardGame$init, view: _user$project$CardGame$view, update: _user$project$CardGame$update, subscriptions: _user$project$CardGame$subscriptions})();
 var _user$project$CardGame$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
-var _user$project$CardGame$subscriptions = function (model) {
-	return _elm_lang$core$Native_Utils.eq(model.gameStatus, _user$project$CardGame$Playing) ? A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _user$project$CardGame$Tick) : _elm_lang$core$Platform_Sub$none;
-};
-var _user$project$CardGame$main = _elm_lang$html$Html$program(
-	{init: _user$project$CardGame$init, view: _user$project$CardGame$view, update: _user$project$CardGame$update, subscriptions: _user$project$CardGame$subscriptions})();
 
 var Elm = {};
 Elm['CardGame'] = Elm['CardGame'] || {};
