@@ -17,7 +17,7 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = (\_ -> Sub.none)
         }
 
 
@@ -52,6 +52,7 @@ type CardStatus
     | Matched
 
 
+initialModel : Model
 initialModel =
     let
         ids =
@@ -170,30 +171,20 @@ type Msg
     | FlipCard Card
     | ShuffleList (List Card)
     | ResetGame
-    | CheckForMatches
+    | NoMatch
 
 
 matchesCmd : Cmd Msg
 matchesCmd =
-    sleep (1500 * millisecond)
-        |> perform (\_ -> CheckForMatches)
+    sleep (2000 * millisecond)
+        |> perform (\_ -> NoMatch)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick newTime ->
-            let
-                matchedCards =
-                    getCardsByStatus Matched model.cards
-
-                gameStatus =
-                    if List.length matchedCards == List.length model.cards then
-                        Over
-                    else
-                        Playing
-            in
-                ( { model | time = Just newTime, gameStatus = gameStatus }, Cmd.none )
+            ( { model | time = Just newTime }, Cmd.none )
 
         ShuffleList shuffledList ->
             ( { model | cards = shuffledList }, Cmd.none )
@@ -202,35 +193,39 @@ update msg model =
             let
                 updatedCards =
                     List.map (\card -> { card | status = updateCardStatus currentCard card }) model.cards
+
+                flippedCards =
+                    getCardsByStatus Flipped updatedCards
+
+                playingCards =
+                    if doCardsMatch flippedCards then
+                        List.map matchCard updatedCards
+                    else
+                        updatedCards
+
+                matchedCards =
+                    getCardsByStatus Matched playingCards
+
+                gameStatus =
+                    if List.length matchedCards == List.length model.cards then
+                        Over
+                    else
+                        Playing
             in
-                ( { model | cards = updatedCards, gameStatus = Playing }, matchesCmd )
+                ( { model | cards = playingCards, gameStatus = gameStatus }, matchesCmd )
 
         ResetGame ->
             ( initialModel, Cmd.none )
 
-        CheckForMatches ->
+        NoMatch ->
             let
                 flippedCards =
                     getCardsByStatus Flipped model.cards
 
                 updatedCards =
-                    if List.length flippedCards == 1 then
-                        model.cards
-                    else if doCardsMatch flippedCards then
-                        List.map matchCard model.cards
-                    else
+                    if List.length flippedCards == 2 then
                         List.map hideCard model.cards
+                    else
+                        model.cards
             in
                 ( { model | cards = updatedCards }, Cmd.none )
-
-
-
--- SUBSCRIPTIONS
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    if model.gameStatus == Playing then
-        Time.every second Tick
-    else
-        Sub.none

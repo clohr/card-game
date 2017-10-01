@@ -9536,29 +9536,24 @@ var _user$project$CardGame$hideCard = function (card) {
 		card,
 		{status: _user$project$CardGame$Hidden}) : card;
 };
-var _user$project$CardGame$CheckForMatches = {ctor: 'CheckForMatches'};
+var _user$project$CardGame$NoMatch = {ctor: 'NoMatch'};
 var _user$project$CardGame$matchesCmd = A2(
 	_elm_lang$core$Task$perform,
 	function (_p0) {
-		return _user$project$CardGame$CheckForMatches;
+		return _user$project$CardGame$NoMatch;
 	},
-	_elm_lang$core$Process$sleep(1500 * _elm_lang$core$Time$millisecond));
+	_elm_lang$core$Process$sleep(2000 * _elm_lang$core$Time$millisecond));
 var _user$project$CardGame$update = F2(
 	function (msg, model) {
 		var _p1 = msg;
 		switch (_p1.ctor) {
 			case 'Tick':
-				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, model.cards);
-				var gameStatus = _elm_lang$core$Native_Utils.eq(
-					_elm_lang$core$List$length(matchedCards),
-					_elm_lang$core$List$length(model.cards)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
 						{
-							time: _elm_lang$core$Maybe$Just(_p1._0),
-							gameStatus: gameStatus
+							time: _elm_lang$core$Maybe$Just(_p1._0)
 						}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
@@ -9581,11 +9576,17 @@ var _user$project$CardGame$update = F2(
 							});
 					},
 					model.cards);
+				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, updatedCards);
+				var playingCards = _user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, updatedCards) : updatedCards;
+				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, playingCards);
+				var gameStatus = _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$List$length(matchedCards),
+					_elm_lang$core$List$length(model.cards)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: updatedCards, gameStatus: _user$project$CardGame$Playing}),
+						{cards: playingCards, gameStatus: gameStatus}),
 					_1: _user$project$CardGame$matchesCmd
 				};
 			case 'ResetGame':
@@ -9594,7 +9595,7 @@ var _user$project$CardGame$update = F2(
 				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, model.cards);
 				var updatedCards = _elm_lang$core$Native_Utils.eq(
 					_elm_lang$core$List$length(flippedCards),
-					1) ? model.cards : (_user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, model.cards) : A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards));
+					2) ? A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards) : model.cards;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
@@ -9770,14 +9771,18 @@ var _user$project$CardGame$view = function (model) {
 			}
 		});
 };
+var _user$project$CardGame$main = _elm_lang$html$Html$program(
+	{
+		init: _user$project$CardGame$init,
+		view: _user$project$CardGame$view,
+		update: _user$project$CardGame$update,
+		subscriptions: function (_p2) {
+			return _elm_lang$core$Platform_Sub$none;
+		}
+	})();
 var _user$project$CardGame$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
-var _user$project$CardGame$subscriptions = function (model) {
-	return _elm_lang$core$Native_Utils.eq(model.gameStatus, _user$project$CardGame$Playing) ? A2(_elm_lang$core$Time$every, _elm_lang$core$Time$second, _user$project$CardGame$Tick) : _elm_lang$core$Platform_Sub$none;
-};
-var _user$project$CardGame$main = _elm_lang$html$Html$program(
-	{init: _user$project$CardGame$init, view: _user$project$CardGame$view, update: _user$project$CardGame$update, subscriptions: _user$project$CardGame$subscriptions})();
 
 var Elm = {};
 Elm['CardGame'] = Elm['CardGame'] || {};
