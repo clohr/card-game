@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>card-component test</title>
+
+    <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <script src="../../bower_components/web-component-tester/browser.js"></script>
+
+    <link rel="import" href="../card-component.html">
+  </head>
+  <body>
+    <test-fixture id="basic">
+      <template is="dom-template">
+        <card-component card-id="[[cardId]]" back-text="[[backText]]"></card-component>
+      </template>
+    </test-fixture>
+
+    <test-fixture id="front">
+      <template is="dom-template">
+        <card-component card-id="[[cardId]]" back-text="[[backText]]" front-text="[[frontText]"></card-component>
+      </template>
+    </test-fixture>
+
+    <script>
+      suite('basic card-component', function() {
+        var basic;
+        var flipCardSpy;
+        var transitionSpy;
+        setup(function() {
+          basic = fixture('basic', {
+            cardId: 1,
+            backText: 'A'
+          });
+          flipCardSpy = sinon.spy(basic, '_flipCard');
+          transitionSpy = sinon.spy(basic, '_handleTransition');
+        });
+        teardown(function() {
+          flipCardSpy.restore();
+          transitionSpy.restore();
+        });
+        test('Card Id is correct', function(done) {
+          flush(function() {
+            assert.equal(basic.cardId, 1);
+            done();
+          });
+        });
+        test('Card back-face text is correct', function(done) {
+          flush(function() {
+            var text = Polymer.dom(basic.root).querySelector('.back').textContent;
+            assert.equal(basic.backText, text);
+            done();
+          });
+        });
+        test('Card front-face text is default text', function(done) {
+          flush(function() {
+            var text = Polymer.dom(basic.root).querySelector('.front').textContent;
+            assert.equal(basic.frontText, text);
+            done();
+          });
+        });
+        test('Handles tap event', function() {
+          basic.click();
+          expect(flipCardSpy).to.be.calledOnce;
+        });
+        test('Handles transitionend event', function(done) {
+          flush(function() {
+            basic.classList.add('hover');
+            basic.async(function() {
+              expect(transitionSpy).to.be.calledOnce;
+              done();
+            }, 1000);
+          });
+        });
+      });
+
+      suite('front-face card-component', function() {
+        var front;
+        setup(function() {
+          basic = fixture('front', {
+            cardId: 2,
+            backText: 'B',
+            frontText: '???'
+          });
+        });
+        test('Card back-face text is correct', function(done) {
+          flush(function() {
+            var text = Polymer.dom(basic.root).querySelector('.back').textContent;
+            assert.equal(basic.backText, text);
+            done();
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

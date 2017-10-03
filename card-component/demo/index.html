@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>card-component demo</title>
+
+    <script src="../../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../bower_components/iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../bower_components/iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../card-component.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic card-component demo</h3>
+      <demo-snippet>
+        <template>
+          <card-component
+            card-id="1"
+            back-text="A"></card-component>
+        </template>
+      </demo-snippet>
+    </div>
+    <div class="vertical-section-container centered">
+      <h3>Front-face text card-component demo</h3>
+      <demo-snippet>
+        <template>
+          <card-component
+            card-id="2"
+            back-text="B"
+            front-text="???"></card-component>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

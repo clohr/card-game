@@ -1,0 +1,124 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<!--
+`card-component`
+Playing card that can be flipped on click or tap events using CSS transitions.
+
+@demo demo/index.html 
+-->
+
+<dom-module id="card-component">
+  <template>
+    <style>
+      :host {
+        display: block;
+        height: 150px;
+        line-height: 150px;
+        width: 150px;
+        margin: 20px;
+        perspective: 1000px;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      :host(:hover) {
+        cursor: pointer;
+      }
+
+      :host(.hover) .flipper {
+        transform: rotateY(180deg);
+      }
+
+      .front, .back {
+        border: solid 1px #aeaeae;
+        border-radius: 4px;
+        backface-visibility: hidden;
+        font-size: 24px;
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        width: 100%;
+      }
+
+      .front {
+        background: #666;
+        color: #eee;
+        z-index: 2;
+        transform: rotateY(0deg);
+      }
+
+      .back {
+        background: #fff;
+        color: #666;
+        transform: rotateY(180deg);
+      }
+
+      .flipper {
+        height: 100%;
+        position: relative;
+        transition: 0.5s;
+        transform-style: preserve-3d;
+        width: 100%;
+      }
+    </style>
+    
+    <div class="flipper">
+      <div class="front">[[frontText]]</div>
+      <div class="back">[[backText]]</div>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'card-component',
+
+      properties: {
+        /**
+         * card id
+         */
+         cardId: {
+          type: String,
+          value: '',
+        },
+        /**
+         * display text for card front
+         */
+         frontText: {
+          type: String,
+          value: '?',
+        },
+        /**
+         * display text for card back
+         */
+        backText: {
+          type: String,
+          value: '',
+        },
+
+      },
+
+      listeners: {
+        'tap': '_flipCard',
+        'transitionend': '_handleTransition'
+      },
+
+      /**
+       * fires message to flip card from front-to-back
+       */
+      _flipCard: function() {
+        this.fire('flip-card', this.cardId);
+      },
+
+      /**
+       * fires message at end of card flip transition
+       */
+       _handleTransition: function() {
+        this.fire('flip-card-transition-end');
+      }
+
+    });
+  </script>
+</dom-module>
