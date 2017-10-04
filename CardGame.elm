@@ -1,13 +1,10 @@
 module CardGame exposing (..)
 
 import Html exposing (Html, div, text, node, a)
-import Html.Attributes exposing (class, classList, rel, href)
+import Html.Attributes exposing (class, classList, rel, href, attribute)
 import Html.Events exposing (onClick)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
-import Time exposing (Time, second, millisecond)
-import Process exposing (sleep)
-import Task exposing (perform)
 import List
 
 
@@ -28,7 +25,6 @@ main =
 type alias Model =
     { ids : List String
     , cards : List Card
-    , time : Maybe Time
     , gameStatus : GameStatus
     }
 
@@ -62,7 +58,7 @@ initialModel =
             List.append ids ids
                 |> List.indexedMap (\k v -> Card k v Hidden)
     in
-        Model ids playingCards Nothing Paused
+        Model ids playingCards Paused
 
 
 init : ( Model, Cmd Msg )
@@ -78,32 +74,20 @@ init =
 -- VIEW
 
 
-css : String -> Html Msg
-css path =
-    node "link" [ rel "stylesheet", href path ] []
-
-
 displayCard : Card -> Html Msg
 displayCard card =
-    div
-        [ classList
-            [ ( "card", True )
-            , ( "hover", card.status /= Hidden )
-            ]
-        , onClick <| FlipCard card
+    node "card-component"
+        [ classList [ ( "hover", card.status /= Hidden ) ]
+        , attribute "back-text" card.value
+        , attribute "card-id" <| toString card.id
         ]
-        [ div [ class "flipper" ]
-            [ div [ class "front" ] [ text "?" ]
-            , div [ class "back" ] [ text card.value ]
-            ]
-        ]
+        []
 
 
 view : Model -> Html Msg
 view model =
     div []
-        [ css "styles.css"
-        , div
+        [ div
             [ classList
                 [ ( "game-over", True )
                 , ( "hidden", model.gameStatus /= Over )
@@ -167,25 +151,15 @@ hideCard card =
 
 
 type Msg
-    = Tick Time
-    | FlipCard Card
+    = FlipCard Card
     | ShuffleList (List Card)
     | ResetGame
     | NoMatch
 
 
-matchesCmd : Cmd Msg
-matchesCmd =
-    sleep (2000 * millisecond)
-        |> perform (\_ -> NoMatch)
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Tick newTime ->
-            ( { model | time = Just newTime }, Cmd.none )
-
         ShuffleList shuffledList ->
             ( { model | cards = shuffledList }, Cmd.none )
 
@@ -212,7 +186,7 @@ update msg model =
                     else
                         Playing
             in
-                ( { model | cards = playingCards, gameStatus = gameStatus }, matchesCmd )
+                ( { model | cards = playingCards, gameStatus = gameStatus }, Cmd.none )
 
         ResetGame ->
             ( initialModel, Cmd.none )
