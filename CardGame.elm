@@ -1,10 +1,11 @@
 module CardGame exposing (..)
 
-import Html exposing (Html, div, text, node, a)
+import Html exposing (Html, Attribute, div, text, node, a)
 import Html.Attributes exposing (class, classList, rel, href, attribute)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, on)
 import Random exposing (generate)
 import Random.List exposing (shuffle)
+import Json.Decode as Decode
 import List
 
 
@@ -79,9 +80,20 @@ displayCard card =
     node "card-component"
         [ classList [ ( "hover", card.status /= Hidden ) ]
         , attribute "back-text" card.value
-        , attribute "card-id" <| toString card.id
+        , attribute "card" <| toString card
+        , onClick <| FlipCard card
+        , handleTransitionEnd NoMatch
         ]
         []
+
+
+handleTransitionEnd : Msg -> Attribute Msg
+handleTransitionEnd toMsg =
+    Decode.string
+        |> Decode.andThen Decode.succeed
+        |> Decode.at [ "target", "card" ]
+        |> Decode.map (\_ -> toMsg)
+        |> on "flip-card-transition-end"
 
 
 view : Model -> Html Msg
@@ -101,7 +113,7 @@ view model =
 
 
 
--- UPDATE
+-- HELPERS
 
 
 getCardsByStatus : CardStatus -> List Card -> List Card
@@ -148,6 +160,10 @@ hideCard card =
         { card | status = Hidden }
     else
         card
+
+
+
+-- UPDATE
 
 
 type Msg

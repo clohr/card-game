@@ -9454,6 +9454,28 @@ var _user$project$CardGame$getCardsByStatus = F2(
 			},
 			cards);
 	});
+var _user$project$CardGame$handleTransitionEnd = function (toMsg) {
+	return A2(
+		_elm_lang$html$Html_Events$on,
+		'flip-card-transition-end',
+		A2(
+			_elm_lang$core$Json_Decode$map,
+			function (_p0) {
+				return toMsg;
+			},
+			A2(
+				_elm_lang$core$Json_Decode$at,
+				{
+					ctor: '::',
+					_0: 'target',
+					_1: {
+						ctor: '::',
+						_0: 'card',
+						_1: {ctor: '[]'}
+					}
+				},
+				A2(_elm_lang$core$Json_Decode$andThen, _elm_lang$core$Json_Decode$succeed, _elm_lang$core$Json_Decode$string))));
+};
 var _user$project$CardGame$Model = F3(
 	function (a, b, c) {
 		return {ids: a, cards: b, gameStatus: c};
@@ -9512,37 +9534,6 @@ var _user$project$CardGame$initialModel = function () {
 		A2(_elm_lang$core$List$append, ids, ids));
 	return A3(_user$project$CardGame$Model, ids, playingCards, _user$project$CardGame$Paused);
 }();
-var _user$project$CardGame$displayCard = function (card) {
-	return A3(
-		_elm_lang$html$Html$node,
-		'card-component',
-		{
-			ctor: '::',
-			_0: _elm_lang$html$Html_Attributes$classList(
-				{
-					ctor: '::',
-					_0: {
-						ctor: '_Tuple2',
-						_0: 'hover',
-						_1: !_elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Hidden)
-					},
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A2(_elm_lang$html$Html_Attributes$attribute, 'back-text', card.value),
-				_1: {
-					ctor: '::',
-					_0: A2(
-						_elm_lang$html$Html_Attributes$attribute,
-						'card-id',
-						_elm_lang$core$Basics$toString(card.id)),
-					_1: {ctor: '[]'}
-				}
-			}
-		},
-		{ctor: '[]'});
-};
 var _user$project$CardGame$hideCard = function (card) {
 	return _elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Flipped) ? _elm_lang$core$Native_Utils.update(
 		card,
@@ -9550,14 +9541,14 @@ var _user$project$CardGame$hideCard = function (card) {
 };
 var _user$project$CardGame$update = F2(
 	function (msg, model) {
-		var _p0 = msg;
-		switch (_p0.ctor) {
+		var _p1 = msg;
+		switch (_p1.ctor) {
 			case 'ShuffleList':
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: _p0._0}),
+						{cards: _p1._0}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'FlipCard':
@@ -9567,7 +9558,7 @@ var _user$project$CardGame$update = F2(
 						return _elm_lang$core$Native_Utils.update(
 							card,
 							{
-								status: A2(_user$project$CardGame$updateCardStatus, _p0._0, card)
+								status: A2(_user$project$CardGame$updateCardStatus, _p1._0, card)
 							});
 					},
 					model.cards);
@@ -9602,6 +9593,59 @@ var _user$project$CardGame$update = F2(
 	});
 var _user$project$CardGame$NoMatch = {ctor: 'NoMatch'};
 var _user$project$CardGame$ResetGame = {ctor: 'ResetGame'};
+var _user$project$CardGame$ShuffleList = function (a) {
+	return {ctor: 'ShuffleList', _0: a};
+};
+var _user$project$CardGame$init = function () {
+	var shuffleCmd = A2(
+		_elm_lang$core$Random$generate,
+		_user$project$CardGame$ShuffleList,
+		_elm_community$random_extra$Random_List$shuffle(_user$project$CardGame$initialModel.cards));
+	return {ctor: '_Tuple2', _0: _user$project$CardGame$initialModel, _1: shuffleCmd};
+}();
+var _user$project$CardGame$FlipCard = function (a) {
+	return {ctor: 'FlipCard', _0: a};
+};
+var _user$project$CardGame$displayCard = function (card) {
+	return A3(
+		_elm_lang$html$Html$node,
+		'card-component',
+		{
+			ctor: '::',
+			_0: _elm_lang$html$Html_Attributes$classList(
+				{
+					ctor: '::',
+					_0: {
+						ctor: '_Tuple2',
+						_0: 'hover',
+						_1: !_elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Hidden)
+					},
+					_1: {ctor: '[]'}
+				}),
+			_1: {
+				ctor: '::',
+				_0: A2(_elm_lang$html$Html_Attributes$attribute, 'back-text', card.value),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html_Attributes$attribute,
+						'card',
+						_elm_lang$core$Basics$toString(card)),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Events$onClick(
+							_user$project$CardGame$FlipCard(card)),
+						_1: {
+							ctor: '::',
+							_0: _user$project$CardGame$handleTransitionEnd(_user$project$CardGame$NoMatch),
+							_1: {ctor: '[]'}
+						}
+					}
+				}
+			}
+		},
+		{ctor: '[]'});
+};
 var _user$project$CardGame$view = function (model) {
 	return A2(
 		_elm_lang$html$Html$div,
@@ -9681,28 +9725,15 @@ var _user$project$CardGame$view = function (model) {
 			}
 		});
 };
-var _user$project$CardGame$ShuffleList = function (a) {
-	return {ctor: 'ShuffleList', _0: a};
-};
-var _user$project$CardGame$init = function () {
-	var shuffleCmd = A2(
-		_elm_lang$core$Random$generate,
-		_user$project$CardGame$ShuffleList,
-		_elm_community$random_extra$Random_List$shuffle(_user$project$CardGame$initialModel.cards));
-	return {ctor: '_Tuple2', _0: _user$project$CardGame$initialModel, _1: shuffleCmd};
-}();
 var _user$project$CardGame$main = _elm_lang$html$Html$program(
 	{
 		init: _user$project$CardGame$init,
 		view: _user$project$CardGame$view,
 		update: _user$project$CardGame$update,
-		subscriptions: function (_p1) {
+		subscriptions: function (_p2) {
 			return _elm_lang$core$Platform_Sub$none;
 		}
 	})();
-var _user$project$CardGame$FlipCard = function (a) {
-	return {ctor: 'FlipCard', _0: a};
-};
 
 var Elm = {};
 Elm['CardGame'] = Elm['CardGame'] || {};
