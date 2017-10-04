@@ -90,7 +90,6 @@ displayCard card =
 handleTransitionEnd : Msg -> Attribute Msg
 handleTransitionEnd toMsg =
     Decode.string
-        |> Decode.andThen Decode.succeed
         |> Decode.at [ "target", "card" ]
         |> Decode.map (\_ -> toMsg)
         |> on "flip-card-transition-end"

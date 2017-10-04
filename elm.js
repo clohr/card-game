@@ -9474,7 +9474,7 @@ var _user$project$CardGame$handleTransitionEnd = function (toMsg) {
 						_1: {ctor: '[]'}
 					}
 				},
-				A2(_elm_lang$core$Json_Decode$andThen, _elm_lang$core$Json_Decode$succeed, _elm_lang$core$Json_Decode$string))));
+				_elm_lang$core$Json_Decode$string)));
 };
 var _user$project$CardGame$Model = F3(
 	function (a, b, c) {
