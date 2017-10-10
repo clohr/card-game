@@ -82,7 +82,7 @@ displayCard card =
         , attribute "back-text" card.value
         , attribute "card" <| toString card
         , onClick <| FlipCard card
-        , handleTransitionEnd NoMatch
+        , handleTransitionEnd UpdateCardsAndGameStatus
         ]
         []
 
@@ -137,26 +137,22 @@ doCardsMatch cards =
         firstCard == secondCard
 
 
-updateCardStatus : Card -> Card -> CardStatus
-updateCardStatus currentCard card =
-    if currentCard.id == card.id then
-        Flipped
-    else
-        card.status
+flipCurrentCard : Card -> Card -> Card
+flipCurrentCard currentCard card =
+    let
+        status =
+            if currentCard.id == card.id then
+                Flipped
+            else
+                card.status
+    in
+        { card | status = status }
 
 
-matchCard : Card -> Card
-matchCard card =
+updateCardStatus : CardStatus -> Card -> Card
+updateCardStatus status card =
     if card.status == Flipped then
-        { card | status = Matched }
-    else
-        card
-
-
-hideCard : Card -> Card
-hideCard card =
-    if card.status == Flipped then
-        { card | status = Hidden }
+        { card | status = status }
     else
         card
 
@@ -169,7 +165,7 @@ type Msg
     = FlipCard Card
     | ShuffleList (List Card)
     | ResetGame
-    | NoMatch
+    | UpdateCardsAndGameStatus
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -181,19 +177,35 @@ update msg model =
         FlipCard currentCard ->
             let
                 updatedCards =
-                    List.map (\card -> { card | status = updateCardStatus currentCard card }) model.cards
+                    List.map (flipCurrentCard currentCard) model.cards
 
                 flippedCards =
                     getCardsByStatus Flipped updatedCards
 
                 playingCards =
                     if doCardsMatch flippedCards then
-                        List.map matchCard updatedCards
+                        List.map (updateCardStatus Matched) updatedCards
                     else
                         updatedCards
+            in
+                ( { model | cards = playingCards }, Cmd.none )
+
+        ResetGame ->
+            ( initialModel, Cmd.none )
+
+        UpdateCardsAndGameStatus ->
+            let
+                flippedCards =
+                    getCardsByStatus Flipped model.cards
+
+                updatedCards =
+                    if List.length flippedCards == 2 then
+                        List.map (updateCardStatus Hidden) model.cards
+                    else
+                        model.cards
 
                 matchedCards =
-                    getCardsByStatus Matched playingCards
+                    getCardsByStatus Matched updatedCards
 
                 gameStatus =
                     if List.length matchedCards == List.length model.cards then
@@ -201,20 +213,4 @@ update msg model =
                     else
                         Playing
             in
-                ( { model | cards = playingCards, gameStatus = gameStatus }, Cmd.none )
-
-        ResetGame ->
-            ( initialModel, Cmd.none )
-
-        NoMatch ->
-            let
-                flippedCards =
-                    getCardsByStatus Flipped model.cards
-
-                updatedCards =
-                    if List.length flippedCards == 2 then
-                        List.map hideCard model.cards
-                    else
-                        model.cards
-            in
-                ( { model | cards = updatedCards }, Cmd.none )
+                ( { model | cards = updatedCards, gameStatus = gameStatus }, Cmd.none )

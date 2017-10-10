@@ -9489,15 +9489,19 @@ var _user$project$CardGame$Playing = {ctor: 'Playing'};
 var _user$project$CardGame$Paused = {ctor: 'Paused'};
 var _user$project$CardGame$Matched = {ctor: 'Matched'};
 var _user$project$CardGame$Flipped = {ctor: 'Flipped'};
-var _user$project$CardGame$updateCardStatus = F2(
+var _user$project$CardGame$flipCurrentCard = F2(
 	function (currentCard, card) {
-		return _elm_lang$core$Native_Utils.eq(currentCard.id, card.id) ? _user$project$CardGame$Flipped : card.status;
+		var status = _elm_lang$core$Native_Utils.eq(currentCard.id, card.id) ? _user$project$CardGame$Flipped : card.status;
+		return _elm_lang$core$Native_Utils.update(
+			card,
+			{status: status});
 	});
-var _user$project$CardGame$matchCard = function (card) {
-	return _elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Flipped) ? _elm_lang$core$Native_Utils.update(
-		card,
-		{status: _user$project$CardGame$Matched}) : card;
-};
+var _user$project$CardGame$updateCardStatus = F2(
+	function (status, card) {
+		return _elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Flipped) ? _elm_lang$core$Native_Utils.update(
+			card,
+			{status: status}) : card;
+	});
 var _user$project$CardGame$Hidden = {ctor: 'Hidden'};
 var _user$project$CardGame$initialModel = function () {
 	var ids = {
@@ -9534,11 +9538,6 @@ var _user$project$CardGame$initialModel = function () {
 		A2(_elm_lang$core$List$append, ids, ids));
 	return A3(_user$project$CardGame$Model, ids, playingCards, _user$project$CardGame$Paused);
 }();
-var _user$project$CardGame$hideCard = function (card) {
-	return _elm_lang$core$Native_Utils.eq(card.status, _user$project$CardGame$Flipped) ? _elm_lang$core$Native_Utils.update(
-		card,
-		{status: _user$project$CardGame$Hidden}) : card;
-};
 var _user$project$CardGame$update = F2(
 	function (msg, model) {
 		var _p1 = msg;
@@ -9554,25 +9553,18 @@ var _user$project$CardGame$update = F2(
 			case 'FlipCard':
 				var updatedCards = A2(
 					_elm_lang$core$List$map,
-					function (card) {
-						return _elm_lang$core$Native_Utils.update(
-							card,
-							{
-								status: A2(_user$project$CardGame$updateCardStatus, _p1._0, card)
-							});
-					},
+					_user$project$CardGame$flipCurrentCard(_p1._0),
 					model.cards);
 				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, updatedCards);
-				var playingCards = _user$project$CardGame$doCardsMatch(flippedCards) ? A2(_elm_lang$core$List$map, _user$project$CardGame$matchCard, updatedCards) : updatedCards;
-				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, playingCards);
-				var gameStatus = _elm_lang$core$Native_Utils.eq(
-					_elm_lang$core$List$length(matchedCards),
-					_elm_lang$core$List$length(model.cards)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
+				var playingCards = _user$project$CardGame$doCardsMatch(flippedCards) ? A2(
+					_elm_lang$core$List$map,
+					_user$project$CardGame$updateCardStatus(_user$project$CardGame$Matched),
+					updatedCards) : updatedCards;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: playingCards, gameStatus: gameStatus}),
+						{cards: playingCards}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 			case 'ResetGame':
@@ -9581,17 +9573,24 @@ var _user$project$CardGame$update = F2(
 				var flippedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Flipped, model.cards);
 				var updatedCards = _elm_lang$core$Native_Utils.eq(
 					_elm_lang$core$List$length(flippedCards),
-					2) ? A2(_elm_lang$core$List$map, _user$project$CardGame$hideCard, model.cards) : model.cards;
+					2) ? A2(
+					_elm_lang$core$List$map,
+					_user$project$CardGame$updateCardStatus(_user$project$CardGame$Hidden),
+					model.cards) : model.cards;
+				var matchedCards = A2(_user$project$CardGame$getCardsByStatus, _user$project$CardGame$Matched, updatedCards);
+				var gameStatus = _elm_lang$core$Native_Utils.eq(
+					_elm_lang$core$List$length(matchedCards),
+					_elm_lang$core$List$length(model.cards)) ? _user$project$CardGame$Over : _user$project$CardGame$Playing;
 				return {
 					ctor: '_Tuple2',
 					_0: _elm_lang$core$Native_Utils.update(
 						model,
-						{cards: updatedCards}),
+						{cards: updatedCards, gameStatus: gameStatus}),
 					_1: _elm_lang$core$Platform_Cmd$none
 				};
 		}
 	});
-var _user$project$CardGame$NoMatch = {ctor: 'NoMatch'};
+var _user$project$CardGame$UpdateCardsAndGameStatus = {ctor: 'UpdateCardsAndGameStatus'};
 var _user$project$CardGame$ResetGame = {ctor: 'ResetGame'};
 var _user$project$CardGame$ShuffleList = function (a) {
 	return {ctor: 'ShuffleList', _0: a};
@@ -9637,7 +9636,7 @@ var _user$project$CardGame$displayCard = function (card) {
 							_user$project$CardGame$FlipCard(card)),
 						_1: {
 							ctor: '::',
-							_0: _user$project$CardGame$handleTransitionEnd(_user$project$CardGame$NoMatch),
+							_0: _user$project$CardGame$handleTransitionEnd(_user$project$CardGame$UpdateCardsAndGameStatus),
 							_1: {ctor: '[]'}
 						}
 					}
